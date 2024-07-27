@@ -1,22 +1,25 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import { connect } from 'mongoose';
 import 'dotenv/config';
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;  // Use environment PORT for deployment
 
 const app = express();
+
 app.use(cors({
-    origin: '*',
+    origin: '*',  // Consider restricting origins in production
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     headers: ['Content-Type', 'Authorization']
-  }));
+}));
+
 app.use(express.json());
 
 const username = process.env.MONGO_USERNAME;
 const password = encodeURIComponent(process.env.MONGO_PASSWORD);
 
-mongoose.connect(
+connect(
   `mongodb+srv://${username}:${password}@cluster0.3j0ywmp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`,
 ).then(() => {
   console.log('Connected to MongoDB');
@@ -24,10 +27,10 @@ mongoose.connect(
   console.error('MongoDB connection error', error);
 });
 
-//schema
+// Schema
 const photoSchema = new mongoose.Schema({
-  url:{
-    type:String,
+  url: {
+    type: String,
   }
 });
 
@@ -41,19 +44,19 @@ app.post('/photos', async (req, res) => {
     await photo.save();
     res.json({ message: 'Photo URL saved' });
   } catch (error) {
-    console.log(error);
+    console.error('Error saving photo URL:', error);
     res.status(500).json({ error: 'Failed to save photo URL' });
   }
 });
 
-//Get
+// GET
 app.get('/photos', async (req, res) => {
   try {
     const photos = await Photo.find();
     res.json(photos);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'err' });
+    console.error('Error fetching photos:', error);
+    res.status(500).json({ error: 'Failed to fetch photos' });
   }
 });
 
